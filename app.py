@@ -2,6 +2,7 @@ import json
 import re
 from pathlib import Path
 
+import requests
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -10,19 +11,19 @@ st.set_page_config(page_title="ทีวีฟรี การ์ตูน & ส
 DATA_FILE = Path("channels.json")
 CATEGORIES = ["การ์ตูนเด็ก", "สารคดี"]
 
-# ตัวอย่างเริ่มต้น (เปลี่ยน/เพิ่มเองได้ในแอพ หรือแก้ไฟล์ channels.json)
-# ใช้เฉพาะแหล่งที่เผยแพร่ถูกลิขสิทธิ์: ช่อง YouTube ทางการ, Internet Archive (สาธารณสมบัติ), สตรีม HLS ฟรีที่เจ้าของอนุญาต
+# รายการเริ่มต้น: ช่อง YouTube ทางการ (ดูได้ตลอด เพราะเล่นจากวิดีโอที่อัปโหลดทั้งหมดของช่อง ไม่ใช่ไลฟ์ที่จบแล้ว)
+# ใส่เป็นลิงก์ช่อง https://www.youtube.com/@ชื่อช่อง ได้เลย แอพจะหาเพลย์ลิสต์ให้เอง
 DEFAULTS = [
-    {
-        "name": "Popeye for President (สาธารณสมบัติ)",
-        "category": "การ์ตูนเด็ก",
-        "url": "https://archive.org/details/Popeye_forPresident",
-    },
-    {
-        "name": "NASA Live (ถ่ายทอดสด)",
-        "category": "สารคดี",
-        "url": "https://www.youtube.com/watch?v=21X5lGlDOfg",
-    },
+    {"name": "Peppa Pig (ช่องทางการ)", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/@peppapigofficial"},
+    {"name": "Bluey (ช่องทางการ)", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/@Bluey"},
+    {"name": "CoComelon (เพลงเด็ก)", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/@CoComelon"},
+    {"name": "Sesame Street (เซซามีสตรีท)", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/@SesameStreet"},
+    {"name": "Pocoyo (โปโกโย)", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/@Pocoyo"},
+    {"name": "National Geographic", "category": "สารคดี", "url": "https://www.youtube.com/@NatGeo"},
+    {"name": "BBC Earth", "category": "สารคดี", "url": "https://www.youtube.com/@BBCEarth"},
+    {"name": "DW Documentary", "category": "สารคดี", "url": "https://www.youtube.com/@dwdocumentary"},
+    {"name": "NASA (อวกาศ)", "category": "สารคดี", "url": "https://www.youtube.com/@NASA"},
+    {"name": "Kurzgesagt (วิทยาศาสตร์แอนิเมชัน)", "category": "สารคดี", "url": "https://www.youtube.com/@kurzgesagt"},
 ]
 
 
@@ -39,6 +40,32 @@ def save_channels(items):
     DATA_FILE.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+@st.cache_data(show_spinner=False, ttl=60 * 60 * 24 * 30)
+def resolve_channel_id(url: str):
+    """หา channel ID (UC...) จากลิงก์ช่อง เช่น https://www.youtube.com/@NASA"""
+    m = re.search(r"youtube\.com/channel/(UC[\w-]{22})", url)
+    if m:
+        return m.group(1)
+    try:
+        r = requests.get(
+            url,
+            timeout=10,
+            headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "en-US,en;q=0.9"},
+            cookies={"CONSENT": "YES+1", "SOCS": "CAI"},
+        )
+        for pat in (
+            r'<link rel="canonical" href="https://www\.youtube\.com/channel/(UC[\w-]{22})"',
+            r'"externalId":"(UC[\w-]{22})"',
+            r'"channelId":"(UC[\w-]{22})"',
+        ):
+            mm = re.search(pat, r.text)
+            if mm:
+                return mm.group(1)
+    except Exception:
+        pass
+    return None
+
+
 def render_player(url: str):
     """แปลงลิงก์เป็นตัวเล่น: YouTube / Internet Archive / HLS (.m3u8) / ไฟล์วิดีโอ"""
     u = url.strip()
@@ -49,6 +76,14 @@ def render_player(url: str):
     if "youtube.com" in u or "youtu.be" in u:
         if m:
             src = f"https://www.youtube.com/embed/{m.group(1)}?rel=0"
+        elif not pl and re.search(r"youtube\.com/(@|channel/|c/|user/)", u):
+            cid = resolve_channel_id(u)
+            if not cid:
+                st.warning("หาช่องนี้ไม่เจอ (ต้องต่ออินเทอร์เน็ต) ลองใช้ลิงก์วิดีโอหรือเพลย์ลิสต์แทน")
+                st.link_button("เปิดช่องใน YouTube", u)
+                return
+            # เพลย์ลิสต์ "วิดีโอที่อัปโหลดทั้งหมด" ของช่อง = UU + ส่วนท้ายของ channel ID
+            src = f"https://www.youtube.com/embed/videoseries?list=UU{cid[2:]}"
         elif pl:
             src = f"https://www.youtube.com/embed/videoseries?list={pl.group(1)}"
         else:
@@ -113,6 +148,11 @@ with st.sidebar:
     kid_mode = st.toggle("🧒 โหมดเด็ก (ซ่อนการจัดการ)", value=False)
 
     if not kid_mode:
+        if st.button("🔄 รีเซ็ตเป็นรายการเริ่มต้น"):
+            st.session_state.channels = list(DEFAULTS)
+            st.session_state.current = 0
+            save_channels(st.session_state.channels)
+            st.rerun()
         with st.expander("➕ เพิ่มรายการ"):
             with st.form("add", clear_on_submit=True):
                 n = st.text_input("ชื่อ")
