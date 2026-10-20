@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Peppa Pig (ช่องทางการ)",
+    "category": "การ์ตูนเด็ก",
+    "url": "https://www.youtube.com/@peppapigofficial"
+  },
+  {
+    "name": "Bluey (ช่องทางการ)",
+    "category": "การ์ตูนเด็ก",
+    "url": "https://www.youtube.com/@Bluey"
+  },
+  {
+    "name": "CoComelon (เพลงเด็ก)",
+    "category": "การ์ตูนเด็ก",
+    "url": "https://www.youtube.com/@CoComelon"
+  },
+  {
+    "name": "Sesame Street (เซซามีสตรีท)",
+    "category": "การ์ตูนเด็ก",
+    "url": "https://www.youtube.com/@SesameStreet"
+  },
+  {
+    "name": "Pocoyo (โปโกโย)",
+    "category": "การ์ตูนเด็ก",
+    "url": "https://www.youtube.com/@Pocoyo"
+  },
+  {
+    "name": "National Geographic",
+    "category": "สารคดี",
+    "url": "https://www.youtube.com/@NatGeo"
+  },
+  {
+    "name": "BBC Earth",
+    "category": "สารคดี",
+    "url": "https://www.youtube.com/@BBCEarth"
+  },
+  {
+    "name": "DW Documentary",
+    "category": "สารคดี",
+    "url": "https://www.youtube.com/@dwdocumentary"
+  },
+  {
+    "name": "NASA (อวกาศ)",
+    "category": "สารคดี",
+    "url": "https://www.youtube.com/@NASA"
+  },
+  {
+    "name": "Kurzgesagt (วิทยาศาสตร์แอนิเมชัน)",
+    "category": "สารคดี",
+    "url": "https://www.youtube.com/@kurzgesagt"
+  }
+]
