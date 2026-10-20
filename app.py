@@ -1,5 +1,6 @@
 import json
 import re
+from urllib.parse import quote_plus
 from pathlib import Path
 
 import requests
@@ -14,11 +15,16 @@ CATEGORIES = ["การ์ตูนเด็ก", "สารคดี"]
 # รายการเริ่มต้น: ช่อง YouTube ทางการ (ดูได้ตลอด เพราะเล่นจากวิดีโอที่อัปโหลดทั้งหมดของช่อง ไม่ใช่ไลฟ์ที่จบแล้ว)
 # ใส่เป็นลิงก์ช่อง https://www.youtube.com/@ชื่อช่อง ได้เลย แอพจะหาเพลย์ลิสต์ให้เอง
 DEFAULTS = [
-    {"name": "Peppa Pig (ช่องทางการ)", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/@peppapigofficial"},
-    {"name": "Bluey (ช่องทางการ)", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/@Bluey"},
-    {"name": "CoComelon (เพลงเด็ก)", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/@CoComelon"},
-    {"name": "Sesame Street (เซซามีสตรีท)", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/@SesameStreet"},
-    {"name": "Pocoyo (โปโกโย)", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/@Pocoyo"},
+    {"name": "เบบี้บัส ภาษาไทย", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/results?search_query=BabyBus+ภาษาไทย"},
+    {"name": "โพโรโระ เพนกวินน้อย ภาษาไทย", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/results?search_query=Pororo+ภาษาไทย"},
+    {"name": "เพื่อนรักสัตว์เลี้ยง ลาร์วา ภาษาไทย", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/results?search_query=Larva+การ์ตูน+พากย์ไทย"},
+    {"name": "รถบัสไทโย ภาษาไทย", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/results?search_query=Tayo+ภาษาไทย"},
+    {"name": "โรโบคาร์ โพลี ภาษาไทย", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/results?search_query=Robocar+Poli+ภาษาไทย"},
+    {"name": "หนูน้อยโคโค่เมลอน เพลงเด็กไทย", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/results?search_query=CoComelon+ภาษาไทย"},
+    {"name": "พิ้งฟอง เพลงเด็กภาษาไทย", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/results?search_query=Pinkfong+ภาษาไทย"},
+    {"name": "มาช่าและหมี ภาษาไทย", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/results?search_query=Masha+and+the+Bear+ภาษาไทย"},
+    {"name": "เป๊ปป้าพิก ภาษาไทย", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/results?search_query=Peppa+Pig+ภาษาไทย"},
+    {"name": "นิทานการ์ตูนเด็ก ภาษาไทย", "category": "การ์ตูนเด็ก", "url": "https://www.youtube.com/results?search_query=นิทานการ์ตูนเด็ก+ภาษาไทย"},
     {"name": "National Geographic", "category": "สารคดี", "url": "https://www.youtube.com/@NatGeo"},
     {"name": "BBC Earth", "category": "สารคดี", "url": "https://www.youtube.com/@BBCEarth"},
     {"name": "DW Documentary", "category": "สารคดี", "url": "https://www.youtube.com/@dwdocumentary"},
@@ -69,6 +75,13 @@ def resolve_channel_id(url: str):
 def render_player(url: str):
     """แปลงลิงก์เป็นตัวเล่น: YouTube / Internet Archive / HLS (.m3u8) / ไฟล์วิดีโอ"""
     u = url.strip()
+
+    # ลิงก์ค้นหาการ์ตูนภาษาไทย: เปิดผลลัพธ์ใน YouTube เพื่อเลือกตอน
+    # (YouTube ไม่รองรับการฝังหน้าผลการค้นหาเป็นเครื่องเล่น)
+    if "youtube.com/results?search_query=" in u:
+        st.info("เลือกรายการหรือตอนพากย์ไทยจาก YouTube แล้วคัดลอกลิงก์วิดีโอมาเพิ่มในแอปเพื่อเล่นในหน้านี้ได้")
+        st.link_button("▶️ เปิดรายการภาษาไทยใน YouTube", u)
+        return
 
     # YouTube (วิดีโอ หรือ เพลย์ลิสต์)
     m = re.search(r"(?:v=|youtu\.be/|embed/)([\w-]{11})", u)
@@ -135,6 +148,12 @@ def render_player(url: str):
 # ---------------- UI ----------------
 if "channels" not in st.session_state:
     st.session_state.channels = load_channels()
+    # เพิ่มการ์ตูนภาษาไทยให้ข้อมูลเก่าที่บันทึกไว้ โดยไม่ลบรายการของผู้ใช้
+    existing = {ch.get("name") for ch in st.session_state.channels}
+    additions = [ch.copy() for ch in DEFAULTS[:10] if ch["name"] not in existing]
+    if additions:
+        st.session_state.channels = additions + st.session_state.channels
+        save_channels(st.session_state.channels)
 if "current" not in st.session_state:
     st.session_state.current = 0
 
