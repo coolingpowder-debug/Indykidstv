@@ -9,19 +9,33 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title='ทีวีการ์ตูน LIVE', page_icon='📺', layout='wide')
-DATA_FILE = Path('channels_live_world_150.json')
-CATEGORIES = ['การ์ตูนภาษาอังกฤษ', 'สารคดี']
+DATA_FILE = Path('channels_live.json')
+CATEGORIES = ['การ์ตูนเด็ก', 'สารคดี']
 # คำค้นเป็นแหล่งค้นหา LIVE ไม่ใช่ URL ที่ยืนยันว่าถ่ายทอดสดตลอด 24 ชั่วโมง
-# 150 LIVE discovery targets: 100 English cartoon brands and 50 worldwide documentary sources/topics.
-# These are SEARCH TARGETS, not 150 verified simultaneous broadcasts.
-CARTOON_TARGETS = ['Peppa Pig', 'Bluey', 'CoComelon', 'Little Baby Bum', 'BabyBus', 'Pinkfong', 'Baby Shark', 'Super Simple Songs', 'Blippi', 'Morphle', 'Pocoyo', 'Masha and the Bear', 'Larva', 'Pororo', 'Tayo the Little Bus', 'Robocar Poli', 'Titipo', 'Leo the Truck', 'Booba', 'Oddbods', 'Sunny Bunnies', 'Talking Tom', 'Talking Angela', 'My Talking Tom Friends', 'Shaun the Sheep', 'Timmy Time', 'Bing Bunny', 'Hey Duggee', 'Sarah and Duck', 'Numberblocks', 'Alphablocks', 'Colourblocks', 'StoryBots', 'Sesame Street', 'Elmo', 'Mickey Mouse Clubhouse', 'Disney Junior', 'PJ Masks', 'Spidey and His Amazing Friends', 'Blue Clues and You', 'PAW Patrol', 'Rubble and Crew', 'Dora the Explorer', 'Bubble Guppies', 'Team Umizoomi', 'SpongeBob SquarePants', 'The Loud House', 'Teen Titans Go', 'Tom and Jerry', 'Looney Tunes', 'Bugs Bunny', 'Scooby Doo', 'Mr Bean Animated', 'Grizzy and the Lemmings', 'Zig and Sharko', 'Oggy and the Cockroaches', 'The Smurfs', 'The Garfield Show', 'Heidi cartoon', 'Maya the Bee', 'The Fixies', 'Om Nom Stories', 'Cut the Rope cartoon', 'Katuri', 'Molangg', 'Molang cartoon', 'Simon Super Rabbit', 'Caillou', 'Arthur PBS Kids', 'Curious George', 'Wild Kratts', 'Daniel Tigers Neighborhood', 'Super Why', 'WordWorld', 'Sid the Science Kid', 'Octonauts', 'Go Jetters', 'Thomas and Friends', 'Chuggington', 'Bob the Builder', 'Fireman Sam', 'Postman Pat', 'Little Einsteins', 'Dinosaur Train', 'Gigantosaurus', 'Jurassic World Camp Cretaceous', 'Pokémon Kids TV', 'Sonic Boom', 'Sonic Prime', 'Kirby cartoon', 'Ninjago', 'LEGO City Adventures', 'LEGO Friends', 'Barbie Dreamhouse Adventures', 'Polly Pocket', 'My Little Pony', 'Care Bears', 'Strawberry Shortcake', 'Rainbow Rangers', 'True and the Rainbow Kingdom']
-DOCUMENTARY_TARGETS = ['NASA Live', 'NASA Earth from Space', 'NASA ISS Live', 'ESA European Space Agency', 'SpaceX launch live', 'Blue Origin live', 'JAXA space live', 'ISRO launch live', 'European Southern Observatory', 'Royal Observatory Greenwich', 'National Geographic', 'Nat Geo Wild', 'BBC Earth', 'BBC Earth Science', 'Discovery Channel', 'Discovery Science', 'Animal Planet', 'Smithsonian Channel', 'PBS Nature', 'PBS NOVA', 'DW Documentary', 'DW Planet A', 'ARTE Documentary', 'Al Jazeera English documentaries', 'NHK World Japan', 'NHK World Science View', 'France 24 documentary', 'TRT World documentary', 'CGTN Documentary', 'CNA Insider documentary', 'ABC Australia documentary', 'CBC The Nature of Things', 'TVO Docs', 'Real Stories documentary', 'Free Documentary', 'Free Documentary Nature', 'Free Documentary History', 'Timeline World History Documentaries', 'History Channel', 'History Hit', 'Ancient Architects', 'World Science Festival', 'The Royal Institution', 'The Nature Conservancy', 'Ocean Exploration Trust', 'NOAA Ocean Exploration', 'Monterey Bay Aquarium live', 'Explore.org live nature cams', 'Cornell Lab Bird Cams', 'Africam wildlife live']
-DEFAULTS = (
-    [{'name': n + ' — English LIVE', 'category': 'การ์ตูนภาษาอังกฤษ',
-      'url': 'ytsearch5:' + n + ' official English live stream'} for n in CARTOON_TARGETS]
-    + [{'name': n + ' — LIVE', 'category': 'สารคดี',
-        'url': 'ytsearch5:' + n + ' official live stream'} for n in DOCUMENTARY_TARGETS]
-)
+DEFAULTS = [
+    {'name': n, 'category': 'การ์ตูนเด็ก', 'url': 'ytsearch5:' + q}
+    for n, q in [
+        ('BabyBus ภาษาไทย', 'BabyBus ภาษาไทย live สด'),
+        ('Pororo ภาษาไทย', 'Pororo ภาษาไทย live สด'),
+        ('Larva ภาษาไทย', 'Larva ภาษาไทย live สด'),
+        ('Tayo ภาษาไทย', 'Tayo ภาษาไทย live สด'),
+        ('Robocar Poli ภาษาไทย', 'Robocar Poli ภาษาไทย live สด'),
+        ('CoComelon ภาษาไทย', 'CoComelon ภาษาไทย live สด'),
+        ('Pinkfong ภาษาไทย', 'Pinkfong ภาษาไทย live สด'),
+        ('Masha and the Bear ภาษาไทย', 'Masha and the Bear ภาษาไทย live สด'),
+        ('Peppa Pig ภาษาไทย', 'Peppa Pig ภาษาไทย live สด'),
+        ('นิทานการ์ตูนเด็ก ภาษาไทย', 'นิทานการ์ตูนเด็ก ภาษาไทย live สด'),
+    ]
+] + [
+    {'name': n, 'category': 'สารคดี', 'url': 'ytsearch5:' + q}
+    for n, q in [
+        ('National Geographic LIVE', 'National Geographic live'),
+        ('BBC Earth LIVE', 'BBC Earth live'),
+        ('DW Documentary LIVE', 'DW Documentary live'),
+        ('NASA LIVE', 'NASA live official'),
+        ('วิทยาศาสตร์ LIVE', 'science documentary live stream'),
+    ]
+]
 
 
 def load_channels():
@@ -84,8 +98,8 @@ if 'channels' not in st.session_state:
 if 'current' not in st.session_state:
     st.session_state.current = None
 
-st.title('📺 LIVE ทั่วโลก — การ์ตูนอังกฤษ 100 + สารคดี 50')
-st.caption('100 แหล่งค้นหาการ์ตูนภาษาอังกฤษ + 50 แหล่งค้นหาสารคดีทั่วโลก • แสดงเฉพาะที่ยืนยันว่า LIVE • ไม่รับประกันว่าทุกแหล่งจะมี LIVE')
+st.title('📺 ทีวีออนไลน์ — LIVE เท่านั้น')
+st.caption('แสดงเฉพาะวิดีโอที่ YouTube รายงานว่ากำลังถ่ายทอดสดจริง (ตรวจสอบใหม่ทุก 5 นาที)')
 with st.sidebar:
     cat = st.radio('หมวดหมู่', ['ทั้งหมด'] + CATEGORIES)
     q = st.text_input('ค้นหาช่อง')
@@ -115,16 +129,11 @@ with st.sidebar:
 filtered = [(i, ch) for i, ch in enumerate(st.session_state.channels)
             if (cat == 'ทั้งหมด' or ch.get('category') == cat)
             and q.lower() in ch.get('name', '').lower()]
-st.caption(f'มีแหล่งค้นหา {len(filtered)} รายการ (ไม่ใช่จำนวนช่องที่กำลัง LIVE)')
-page_size = st.select_slider('จำนวนรายการที่ตรวจสอบต่อครั้ง', options=[10, 20, 30, 50], value=20)
-page_count = max(1, (len(filtered) + page_size - 1) // page_size)
-page = st.number_input('หน้ารายการ', min_value=1, max_value=page_count, value=1, step=1)
-filtered = filtered[(page - 1) * page_size:page * page_size]
 with st.spinner('กำลังตรวจสอบว่าช่องใด LIVE จริง...'):
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=5) as pool:
         ids = list(pool.map(lambda pair: inspect_channel(pair[1]), filtered))
 live_items = [(i, ch, video_id) for (i, ch), video_id in zip(filtered, ids) if video_id]
-st.metric('ช่องที่กำลัง LIVE ในหน้าที่ตรวจสอบ', len(live_items))
+st.metric('ช่องที่กำลัง LIVE', len(live_items))
 if not live_items:
     st.warning('ยังไม่พบช่องที่ยืนยันว่า LIVE ในขณะนี้ หรือ YouTube จำกัดการตรวจสอบ ลองกดตรวจสอบใหม่ภายหลัง')
     st.stop()
